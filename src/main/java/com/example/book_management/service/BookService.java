@@ -1,5 +1,6 @@
 package com.example.book_management.service;
 
+import com.example.book_management.dto.BookRequest;
 import com.example.book_management.entity.Book;
 import com.example.book_management.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,13 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class BookService {
     private final BookRepository bookRepository;
-    private String create(String title, String author, String category) {
-        if (bookRepository.existsByTitleAndAuthor(title, author)) {
+
+    public Book create(BookRequest book) {
+        if (bookRepository.existsByTitleAndAuthor(book.getTitle(), book.getAuthor())) {
             throw new IllegalArgumentException(
-                    "すでに登録されている本です: " + title + "/" + author
+                    "すでに登録されている本です: " + book.getTitle() + "/" + book.getAuthor()
             );
         }
-        bookRepository.save(Book.create(title, author, category));
-        return "新しい本を登録しました。";
+        return bookRepository.save(Book.create(book.getTitle(), book.getAuthor(), book.getCategory()));
     }
 }
