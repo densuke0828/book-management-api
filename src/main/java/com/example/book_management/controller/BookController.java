@@ -8,10 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,8 +19,17 @@ public class BookController {
     private final BookService bookService;
 
     @PostMapping
-    public ResponseEntity<BookResponse> save(@Validated @RequestBody BookRequest request) {
-        Book book = bookService.create(request);
+    public ResponseEntity<BookResponse> createBook(@Validated @RequestBody BookRequest request) {
+        Book book = bookService.createBook(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(BookResponse.from(book));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<BookResponse>> findAll() {
+        List<BookResponse> books = bookService.findAll()
+                .stream()
+                .map(BookResponse::from)
+                .toList();
+        return ResponseEntity.ok(books);
     }
 }
