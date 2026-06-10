@@ -32,4 +32,10 @@ public class BookController {
                 .toList();
         return ResponseEntity.ok(books);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BookResponse> searchById(@PathVariable Long id) {
+        Book book = bookService.searchById(id);
+        return ResponseEntity.ok(BookResponse.from(book));
+    }
 }
