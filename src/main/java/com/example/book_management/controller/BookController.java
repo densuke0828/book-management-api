@@ -24,6 +24,12 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.CREATED).body(BookResponse.from(book));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<BookResponse> updateBook(@PathVariable Long id, @Validated @RequestBody BookRequest request) {
+        Book book = bookService.updateBook(id, request);
+        return ResponseEntity.ok(BookResponse.from(book));
+    }
+
     @GetMapping
     public ResponseEntity<List<BookResponse>> findAll() {
         List<BookResponse> books = bookService.findAll()
@@ -37,5 +43,11 @@ public class BookController {
     public ResponseEntity<BookResponse> searchById(@PathVariable Long id) {
         Book book = bookService.searchById(id);
         return ResponseEntity.ok(BookResponse.from(book));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        bookService.deleteBook(id);
+        return ResponseEntity.noContent().build();
     }
 }

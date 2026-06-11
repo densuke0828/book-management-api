@@ -44,4 +44,10 @@ public class Book {
         book.category = category;
         return book;
     }
+
+    public void update(String title, String author, String category) {
+        this.title = title;
+        this.author = author;
+        this.category = category;
+    }
 }

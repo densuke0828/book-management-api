@@ -34,4 +34,19 @@ public class BookService {
         }
         return bookRepository.save(Book.create(book.getTitle(), book.getAuthor(), book.getCategory()));
     }
+
+    @Transactional(readOnly = false)
+    public Book updateBook(Long id, BookRequest book) {
+        Book foundBook = bookRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("指定された本は登録されていません"));
+        foundBook.update(book.getTitle(), book.getAuthor(), book.getCategory());
+        return foundBook;
+    }
+
+    @Transactional(readOnly = false)
+    public void deleteBook(Long id) {
+        Book foundBook = bookRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("指定された本は登録されていません"));
+        bookRepository.delete(foundBook);
+    }
 }
