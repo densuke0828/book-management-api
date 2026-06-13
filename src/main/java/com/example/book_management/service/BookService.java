@@ -2,6 +2,8 @@ package com.example.book_management.service;
 
 import com.example.book_management.dto.BookRequest;
 import com.example.book_management.entity.Book;
+import com.example.book_management.exception.BookNotFoundException;
+import com.example.book_management.exception.DuplicateBookException;
 import com.example.book_management.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,15 +24,13 @@ public class BookService {
 
     public Book searchById(Long id) {
         return bookRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("指定された本は登録されていません"));
+                .orElseThrow(() -> new BookNotFoundException(id));
     }
 
     @Transactional(readOnly = false)
     public Book createBook(BookRequest book) {
         if (bookRepository.existsByTitleAndAuthor(book.getTitle(), book.getAuthor())) {
-            throw new IllegalStateException(
-                    "すでに登録されている本です: " + book.getTitle() + "/" + book.getAuthor()
-            );
+            throw new DuplicateBookException(book.getTitle(), book.getAuthor());
         }
         return bookRepository.save(Book.create(book.getTitle(), book.getAuthor(), book.getCategory()));
     }
@@ -38,7 +38,7 @@ public class BookService {
     @Transactional(readOnly = false)
     public Book updateBook(Long id, BookRequest book) {
         Book foundBook = bookRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("指定された本は登録されていません"));
+                .orElseThrow(() -> new BookNotFoundException(id));
         foundBook.update(book.getTitle(), book.getAuthor(), book.getCategory());
         return foundBook;
     }
@@ -46,7 +46,7 @@ public class BookService {
     @Transactional(readOnly = false)
     public void deleteBook(Long id) {
         Book foundBook = bookRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("指定された本は登録されていません"));
+                .orElseThrow(() -> new BookNotFoundException(id));
         bookRepository.delete(foundBook);
     }
 }
