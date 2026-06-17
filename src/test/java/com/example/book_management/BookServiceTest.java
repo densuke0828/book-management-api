@@ -1,0 +1,96 @@
+package com.example.book_management;
+
+import com.example.book_management.dto.BookRequest;
+import com.example.book_management.entity.Book;
+import com.example.book_management.exception.BookNotFoundException;
+import com.example.book_management.exception.DuplicateBookException;
+import com.example.book_management.repository.BookRepository;
+import com.example.book_management.service.BookService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static org.mockito.BDDMockito.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+
+@ExtendWith(MockitoExtension.class)
+public class BookServiceTest {
+    @Mock
+    private BookRepository bookRepository;
+
+    @InjectMocks
+    private BookService bookService;
+
+    @Test
+    void searchById_正常系_本が返ってくる() {
+        Book book = Book.create("タイトル", "著者", "カテゴリ");
+        given(bookRepository.findById(1L)).willReturn(Optional.of(book));
+
+        Book result = bookService.searchById(1L);
+
+        assertThat(result.getTitle()).isEqualTo("タイトル");
+        assertThat(result.getAuthor()).isEqualTo("著者");
+        assertThat(result.getCategory()).isEqualTo("カテゴリ");
+    }
+
+    @Test
+    void searchById_異常系_BookNotFoundExceptionが投げられる() {
+        given(bookRepository.findById(1L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bookService.searchById(1L))
+                .isInstanceOf(BookNotFoundException.class);
+    }
+
+    @Test
+    void createBook_正常系_本が登録される() {
+        BookRequest request = new BookRequest("タイトル", "著者", "カテゴリ");
+        Book book = Book.create(request.getTitle(), request.getAuthor(), request.getCategory());
+        given(bookRepository.existsByTitleAndAuthor(request.getTitle(), request.getAuthor())).willReturn(false);
+        given(bookRepository.save(any(Book.class))).willReturn(book);
+
+        Book result = bookService.createBook(request);
+
+        assertThat(result.getTitle()).isEqualTo("タイトル");
+        assertThat(result.getAuthor()).isEqualTo("著者");
+        assertThat(result.getCategory()).isEqualTo("カテゴリ");
+
+    }
+
+    @Test
+    void createBook_異常系_DuplicateBookExceptionが投げられる() {
+        BookRequest request = new BookRequest("タイトル", "著者" , "カテゴリ");
+        given(bookRepository.existsByTitleAndAuthor(request.getTitle(), request.getAuthor())).willReturn(true);
+
+        assertThatThrownBy(() -> bookService.createBook(request))
+                .isInstanceOf(DuplicateBookException.class);
+
+    }
+
+    @Test
+    void updateBook_正常系_本の情報が更新される() {
+        BookRequest request = new BookRequest("新タイトル", "新著者", "新カテゴリ");
+        Book foundBook = Book.create("タイトル", "著者", "カテゴリ");
+        given(bookRepository.findById(1L)).willReturn(Optional.of(foundBook));
+
+        Book result = bookService.updateBook(1L, request);
+
+        assertThat(result.getTitle()).isEqualTo("新タイトル");
+        assertThat(result.getAuthor()).isEqualTo("新著者");
+        assertThat(result.getCategory()).isEqualTo("新カテゴリ");
+    }
+
+    @Test
+    void updateBook_異常系_BookNotFoundExceptionが投げられる() {
+        BookRequest request = new BookRequest("新タイトル", "新著者", "新カテゴリ");
+        given(bookRepository.findById(1L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bookService.updateBook(1L, request))
+                .isInstanceOf(BookNotFoundException.class);
+    }
+}
