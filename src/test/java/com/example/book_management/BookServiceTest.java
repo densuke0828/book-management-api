@@ -18,6 +18,7 @@ import static org.mockito.BDDMockito.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
 public class BookServiceTest {
@@ -27,6 +28,9 @@ public class BookServiceTest {
     @InjectMocks
     private BookService bookService;
 
+    /**
+     * searchById
+     * **/
     @Test
     void searchById_正常系_本が返ってくる() {
         Book book = Book.create("タイトル", "著者", "カテゴリ");
@@ -38,7 +42,6 @@ public class BookServiceTest {
         assertThat(result.getAuthor()).isEqualTo("著者");
         assertThat(result.getCategory()).isEqualTo("カテゴリ");
     }
-
     @Test
     void searchById_異常系_BookNotFoundExceptionが投げられる() {
         given(bookRepository.findById(1L)).willReturn(Optional.empty());
@@ -47,6 +50,9 @@ public class BookServiceTest {
                 .isInstanceOf(BookNotFoundException.class);
     }
 
+    /**
+     * createBook
+     * **/
     @Test
     void createBook_正常系_本が登録される() {
         BookRequest request = new BookRequest("タイトル", "著者", "カテゴリ");
@@ -61,7 +67,6 @@ public class BookServiceTest {
         assertThat(result.getCategory()).isEqualTo("カテゴリ");
 
     }
-
     @Test
     void createBook_異常系_DuplicateBookExceptionが投げられる() {
         BookRequest request = new BookRequest("タイトル", "著者" , "カテゴリ");
@@ -72,6 +77,9 @@ public class BookServiceTest {
 
     }
 
+    /**
+     * updateBook
+     * **/
     @Test
     void updateBook_正常系_本の情報が更新される() {
         BookRequest request = new BookRequest("新タイトル", "新著者", "新カテゴリ");
@@ -84,13 +92,32 @@ public class BookServiceTest {
         assertThat(result.getAuthor()).isEqualTo("新著者");
         assertThat(result.getCategory()).isEqualTo("新カテゴリ");
     }
-
     @Test
     void updateBook_異常系_BookNotFoundExceptionが投げられる() {
         BookRequest request = new BookRequest("新タイトル", "新著者", "新カテゴリ");
         given(bookRepository.findById(1L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> bookService.updateBook(1L, request))
+                .isInstanceOf(BookNotFoundException.class);
+    }
+
+    /**
+     * deleteBook
+     * **/
+    @Test
+    void deleteBook_正常系_本が削除される() {
+        Book book = Book.create("タイトル", "著者", "カテゴリ");
+        given(bookRepository.findById(1L)).willReturn(Optional.of(book));
+
+        bookService.deleteBook(1L);
+
+        then(bookRepository).should().delete(book);
+    }
+    @Test
+    void deleteBook_異常系_BookNotFoundExceptionが投げられる() {
+        given(bookRepository.findById(1L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() ->bookService.deleteBook(1L))
                 .isInstanceOf(BookNotFoundException.class);
     }
 }
