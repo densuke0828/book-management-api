@@ -1,11 +1,10 @@
-package com.example.book_management;
+package com.example.book_management.service;
 
 import com.example.book_management.dto.BookRequest;
 import com.example.book_management.entity.Book;
 import com.example.book_management.exception.BookNotFoundException;
 import com.example.book_management.exception.DuplicateBookException;
 import com.example.book_management.repository.BookRepository;
-import com.example.book_management.service.BookService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
