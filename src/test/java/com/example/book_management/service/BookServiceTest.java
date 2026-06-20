@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.BDDMockito.given;
@@ -47,6 +48,30 @@ public class BookServiceTest {
 
         assertThatThrownBy(() -> bookService.searchById(1L))
                 .isInstanceOf(BookNotFoundException.class);
+    }
+
+    /**
+     * findAll
+     */
+    @Test
+    void findAll_正常系_本のリストが返ってくる() {
+        Book book1 = Book.create("タイトル1", "著者1", "カテゴリ1");
+        Book book2 = Book.create("タイトル2", "著者2", "カテゴリ2");
+        given(bookRepository.findAll()).willReturn(List.of(book1, book2));
+
+        List<Book> result = bookService.findAll();
+
+        assertThat(result.get(0).getTitle()).isEqualTo("タイトル1");
+        assertThat(result.get(1).getTitle()).isEqualTo("タイトル2");
+        assertThat(result).hasSize(2);
+    }
+    @Test
+    void findAll_正常系_空のリストが返ってくる() {
+        given(bookRepository.findAll()).willReturn(List.of());
+
+        List<Book> result = bookService.findAll();
+
+        assertThat(result).isEmpty();
     }
 
     /**

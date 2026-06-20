@@ -12,6 +12,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.List;
+
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -48,6 +51,30 @@ public class BookControllerTest {
 
         mockMvc.perform(get("/books/1"))
                 .andExpect(status().isNotFound());
+    }
+
+    /**
+     * findAll
+     */
+    @Test
+    void findAll_正常系_200が返る() throws Exception {
+        Book book1 = Book.create("タイトル1", "著者1", "カテゴリ1");
+        Book book2 = Book.create("タイトル2", "著者2", "カテゴリ2");
+        given(bookService.findAll()).willReturn(List.of(book1, book2));
+
+        mockMvc.perform(get("/books"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("タイトル1"))
+                .andExpect(jsonPath("$[1].title").value("タイトル2"))
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+    @Test
+    void findAll_正常系_空のリストが返る() throws Exception {
+        given(bookService.findAll()).willReturn(List.of());
+
+        mockMvc.perform(get("/books"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
     }
 
     /**
