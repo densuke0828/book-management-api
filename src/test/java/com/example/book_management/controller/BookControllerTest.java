@@ -3,6 +3,7 @@ package com.example.book_management.controller;
 import com.example.book_management.dto.BookRequest;
 import com.example.book_management.entity.Book;
 import com.example.book_management.exception.BookNotFoundException;
+import com.example.book_management.exception.DuplicateBookException;
 import com.example.book_management.service.BookService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.willThrow;
 
 @WebMvcTest(BookController.class)
 public class BookControllerTest {
@@ -40,7 +43,7 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.title").value("タイトル"));
     }
     @Test
-    void searchById_異常系_BookNotFoundExceptionが投げられる() throws Exception{
+    void searchById_異常系_404が返る() throws Exception{
         given(bookService.searchById(1L)).willThrow(new BookNotFoundException(1L));
 
         mockMvc.perform(get("/books/1"))
@@ -62,6 +65,64 @@ public class BookControllerTest {
                         .content(json))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("タイトル"));
+    }
+    @Test
+    void createBook_異常系_409が返る() throws Exception {
+        BookRequest request = new BookRequest("タイトル", "著者", "カテゴリ");
+        String json = objectMapper.writeValueAsString(request);
+        given(bookService.createBook(any(BookRequest.class)))
+                .willThrow(new DuplicateBookException(request.getTitle(), request.getAuthor()));
+
+        mockMvc.perform(post("/books")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isConflict());
+    }
+
+    /**
+     * updateBook
+     */
+    @Test
+    void updateBook_正常系_200が返る() throws Exception {
+        BookRequest request = new BookRequest("新タイトル", "新著者", "新カテゴリ");
+        Book book = Book.create(request.getTitle(), request.getAuthor(), request.getCategory());
+        String json = objectMapper.writeValueAsString(request);
+        given(bookService.updateBook(anyLong(), any(BookRequest.class))).willReturn(book);
+
+        mockMvc.perform(put("/books/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("新タイトル"));
+    }
+    @Test
+    void updateBook_異常系_404が返る() throws Exception {
+        BookRequest request = new BookRequest("新タイトル", "新著者", "新カテゴリ");
+        String json = objectMapper.writeValueAsString(request);
+        given(bookService.updateBook(anyLong(), any(BookRequest.class)))
+                .willThrow(new BookNotFoundException(1L));
+
+        mockMvc.perform(put("/books/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isNotFound());
+
+    }
+
+    /**
+     * deleteBook
+     */
+    @Test
+    void deleteBook_正常系_204が返る() throws Exception {
+        mockMvc.perform(delete("/books/1"))
+                .andExpect(status().isNoContent());
+    }
+    @Test
+    void deleteBook_異常系_404が返る() throws Exception {
+        willThrow(new BookNotFoundException(1L)).given(bookService).deleteBook(1L);
+
+        mockMvc.perform(delete("/books/1"))
+                .andExpect(status().isNotFound());
     }
 
 }

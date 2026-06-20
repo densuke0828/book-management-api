@@ -29,7 +29,7 @@ public class BookServiceTest {
 
     /**
      * searchById
-     * **/
+     */
     @Test
     void searchById_正常系_本が返ってくる() {
         Book book = Book.create("タイトル", "著者", "カテゴリ");
@@ -51,7 +51,7 @@ public class BookServiceTest {
 
     /**
      * createBook
-     * **/
+     */
     @Test
     void createBook_正常系_本が登録される() {
         BookRequest request = new BookRequest("タイトル", "著者", "カテゴリ");
@@ -78,7 +78,7 @@ public class BookServiceTest {
 
     /**
      * updateBook
-     * **/
+     */
     @Test
     void updateBook_正常系_本の情報が更新される() {
         BookRequest request = new BookRequest("新タイトル", "新著者", "新カテゴリ");
@@ -102,7 +102,7 @@ public class BookServiceTest {
 
     /**
      * deleteBook
-     * **/
+     */
     @Test
     void deleteBook_正常系_本が削除される() {
         Book book = Book.create("タイトル", "著者", "カテゴリ");
